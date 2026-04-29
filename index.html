@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 科技品牌探索 - 极简交互体验</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: #ffffff;
+            overflow-x: hidden;
+            color: black;
+        }
+        ::-webkit-scrollbar { width: 0px; }
+        .project-card {
+            perspective: 1000px;
+        }
+        .perspective-container {
+            perspective: 2000px;
+        }
+        /* 避免 Tailwind 默认样式干扰 Framer Motion 动画 */
+        .card-inner {
+            transition: box-shadow 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 导航栏 -->
+    <nav id="navbar" class="fixed top-0 left-0 w-full h-20 flex items-center justify-center z-50 bg-white/80 backdrop-blur-md">
+        <div class="flex gap-8 items-center" id="nav-links">
+            <button data-section="INTRO" class="nav-item text-[10px] tracking-[0.2em] font-bold text-black transition-colors">INTRO</button>
+            <button data-section="VISION" class="nav-item text-[10px] tracking-[0.2em] font-bold text-gray-400 transition-colors">VISION</button>
+            <button data-section="IMPACT" class="nav-item text-[10px] tracking-[0.2em] font-bold text-gray-400 transition-colors">IMPACT</button>
+            <button data-section="INTELLIGENCE" class="nav-item text-[10px] tracking-[0.2em] font-bold text-gray-400 transition-colors">INTELLIGENCE</button>
+        </div>
+    </nav>
+
+    <!-- 滚动容器 -->
+    <main class="relative">
+        <div id="scroll-spacer" class="h-[400vh] w-full">
+            <div id="sticky-viewport" class="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center">
+                
+                <!-- 底部交互文字提示区 -->
+                <div id="ui-overlay" class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                    <div id="status-text" class="text-center mt-[450px] transition-all duration-500 opacity-0 transform translate-y-5">
+                        <!-- 内容由 JS 动态注入 -->
+                    </div>
+                </div>
+
+                <!-- 3D 卡片画布 -->
+                <div id="cards-container" class="relative w-full h-full perspective-container">
+                    <!-- 卡片由 JS 动态注入 -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 详情页模态框 -->
+    <div id="detail-modal" class="fixed inset-0 z-[100] bg-white hidden flex items-center justify-center p-4 md:p-10">
+        <button id="close-modal" class="absolute top-8 right-8 z-[110] flex items-center gap-2 group">
+            <span class="text-[10px] tracking-[0.3em] font-bold opacity-0 group-hover:opacity-100 transition-opacity uppercase">Close</span>
+            <div class="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all">
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M11.7816 4.03157C12.0062 3.80702 12.0062 3.4431 11.7816 3.21855C11.5571 2.994 11.1932 2.994 10.9686 3.21855L7.50005 6.68712L4.03152 3.21855C3.80697 2.994 3.44305 2.994 3.2185 3.21855C2.99395 3.4431 2.99395 3.80702 3.2185 4.03157L6.68703 7.5001L3.2185 10.9686C2.99395 11.1932 2.99395 11.5571 3.2185 11.7816C3.44305 12.0062 3.80697 12.0062 4.03152 11.7816L7.50005 8.31308L10.9686 11.7816C11.1932 12.0062 11.5571 12.0062 11.7816 11.7816C12.0062 11.5571 12.0062 11.1932 11.7816 10.9686L8.31308 7.5001L11.7816 4.03157Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+            </div>
+        </button>
+
+        <div class="w-full max-w-7xl grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div id="detail-image-container" class="aspect-square rounded-2xl overflow-hidden shadow-2xl bg-gray-50 transform translate-y-10 opacity-0 transition-all duration-700">
+                <img id="detail-img" src="" alt="" class="w-full h-full object-cover">
+            </div>
+            <div id="detail-content" class="flex flex-col items-start text-left space-y-6 transform translate-x-10 opacity-0 transition-all duration-700 delay-100">
+                <div class="space-y-2">
+                    <span id="detail-cat" class="text-[10px] tracking-[0.4em] text-gray-400 font-bold uppercase"></span>
+                    <h2 id="detail-title" class="text-5xl md:text-7xl font-bold tracking-tighter"></h2>
+                </div>
+                <p id="detail-desc" class="text-xl text-gray-600 font-light leading-relaxed"></p>
+                <div class="h-px w-20 bg-gray-200 my-4"></div>
+                <p id="detail-long" class="text-sm text-gray-400 leading-loose max-w-lg"></p>
+                <button class="px-8 py-4 bg-black text-white text-[10px] tracking-[0.2em] font-bold uppercase rounded-full shadow-lg hover:scale-105 active:scale-95 transition-transform">Launch Project</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="h-20 flex items-center justify-center border-t border-gray-100 relative bg-white z-10">
+        <p class="text-[9px] tracking-[0.5em] text-gray-400 uppercase">A New Dimension of AI Integration</p>
+    </footer>
+
+    <script>
+        const PROJECTS = [
+            { id: 1, title: "雨夜白玫", category: "ARCHITECTURE", src: "93b0f04e01133a6fa465e6645bedfd91.jpg", details: "暗夜中缀满雨珠的白玫瑰，清冷里藏着易碎温柔。" },
+            { id: 2, title: "慵懒午后", category: "TECHNOLOGY", src: "2717bfaadf6c382f177772f0dcfc8b2b.jpg", description: "阳光下的小熊猫，正慢悠悠打理蓬松的软毛。", details: "The red panda under the sunlight is leisurely grooming its fluffy soft fur." },
+            { id: 3, title: "涂鸦旧巷", category: "LABORATORY", src: "59052eb81fe116b16f24b9c415d43d02.jpg", description: "满是涂鸦的老楼梯，藏着市井鲜活的文艺气息", details: "The old staircase covered in graffiti hides a vibrant literary and artistic atmosphere of the city." },
+            { id: 4, title: "酣眠时光", category: "OFFICE", src: "a315e9ad6a137a7f3ed461fabf1506b9.jpg", description: "躲在树后的小家伙，枕着木架在暖阳里酣睡。", details: "The little creature hiding behind the tree is sleeping soundly on the wooden frame in the warm sunlight." },
+            { id: 5, title: "江城雾桥", category: "DISCUSSION", src: "b16e104d0eae72b4ab61d58186dc2a56.jpg", description: "薄雾中的长江大桥，串起江城的烟火与繁华。", details: "The Yangtze River Bridge in the mist connects the fireworks and prosperity of the river city." },
+            { id: 6, title: "雨后橘玫", category: "DIGITAL", src: "ddd832cb62f91a5f3a5f20d5cf2a089e.jpg", description: "雨雾里的橘粉玫瑰，带着水珠朦胧又明艳。", details: "The orange-pink roses in the rain and mist are hazy yet bright with water droplets." },
+            { id: 7, title: "竹径春光", category: "INTERIOR", src: "ee7da6b86916f1f71c5d021dd084e40e.jpg", description: "竹影斑驳的步道，春日光影里藏着温柔烟火。", details: "The pathway mottled with bamboo shadows, hiding gentle sparks of life in the spring sunlight." },
+            { id: 8, title: "雪映红枝", category: "CORE", src: "f171bb9dd9cc5d50c28273cd7c57777b.jpg", description: "落雪天的红枝，在冷调里透出一抹热烈生机。", details: "The red branches in the snowy weather reveal a touch of warm vitality amidst the cold tones. AI 的决策过程。" }
+        ];
+
+        const container = document.getElementById('cards-container');
+        const statusText = document.getElementById('status-text');
+        const navItems = document.querySelectorAll('.nav-item');
+        const detailModal = document.getElementById('detail-modal');
+
+        // 初始化卡片
+        PROJECTS.forEach((project, i) => {
+            const card = document.createElement('div');
+            card.className = 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-700 ease-out';
+            card.id = `card-${i}`;
+            card.innerHTML = `
+                <div class="card-inner w-48 h-64 rounded-[10px] overflow-hidden bg-gray-100 shadow-lg grayscale hover:grayscale-0 hover:scale-105 transition-all duration-500">
+                    <img src="${project.src}" class="w-full h-full object-cover">
+                </div>
+            `;
+            card.onclick = () => openDetail(project);
+            container.appendChild(card);
+        });
+
+        const updateLayout = () => {
+            const scrollPos = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+            let section = 'INTRO';
+            if (scrollPos < 0.25) section = 'INTRO';
+            else if (scrollPos < 0.5) section = 'VISION';
+            else if (scrollPos < 0.75) section = 'IMPACT';
+            else section = 'INTELLIGENCE';
+
+            // 更新导航
+            navItems.forEach(nav => {
+                nav.classList.toggle('text-black', nav.dataset.section === section);
+                nav.classList.toggle('text-gray-400', nav.dataset.section !== section);
+            });
+
+            // 更新卡片排列
+            PROJECTS.forEach((_, i) => {
+                const el = document.getElementById(`card-${i}`);
+                const total = PROJECTS.length;
+                let x = 0, y = -80, z = 0, rotateY = 0, rotateZ = 0, opacity = 1;
+
+                if (section === 'INTRO') {
+                    const angle = (i / total) * Math.PI * 2;
+                    x = Math.cos(angle) * 320;
+                    y = Math.sin(angle) * 320;
+                } else if (section === 'VISION') {
+                    x = (i - (total - 1) / 2) * 220;
+                    y = Math.pow(i - (total - 1) / 2, 2) * 15 - 100;
+                    rotateZ = (i - (total - 1) / 2) * 8;
+                } else if (section === 'IMPACT') {
+                    z = -i * 150;
+                    x = i * 120 - 300;
+                    y = -50;
+                    rotateY = -25;
+                    opacity = 1 - i * 0.12;
+                } else {
+                    x = i * 180 - 600;
+                    y = -80;
+                }
+
+                el.style.transform = `translate3d(calc(-50% + ${x}px), calc(-50% + ${y}px), ${z}px) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
+                el.style.opacity = opacity;
+            });
+
+            // 更新文字内容
+            updateStatusText(section);
+        };
+
+        const updateStatusText = (section) => {
+            let content = '';
+            if (section === 'INTRO') {
+                content = `
+                    <div class="flex flex-col items-center">
+                        <div class="w-12 h-12 rounded-full border border-black flex items-center justify-center mb-6">
+                            <svg width="14" height="16" viewBox="0 0 14 16" fill="currentColor"><path d="M13.5 8L0.75 15.3612L0.75 0.638784L13.5 8Z"/></svg>
+                        </div>
+                        <p class="text-xs font-bold tracking-widest uppercase mb-1">Building the Future with AI</p>
+                        <p class="text-[10px] text-gray-400 tracking-[0.3em] uppercase">Scroll to explore projects</p>
+                    </div>
+                `;
+            } else if (section === 'VISION') {
+                content = `
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1 tracking-wider">Revolutionizing Cognitive Flow</p>
+                        <p class="text-2xl font-bold tracking-[0.2em] uppercase">Intelligence</p>
+                    </div>
+                `;
+            } else if (section === 'IMPACT') {
+                content = `
+                    <div class="max-w-md mx-auto">
+                        <p class="text-sm font-bold uppercase tracking-widest mb-2">Architectural Logic</p>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-widest">Real-time optimization of physical structures</p>
+                    </div>
+                `;
+            } else {
+                content = `
+                    <div class="flex flex-col items-center">
+                        <div class="flex gap-4 mb-4">
+                            <span class="text-[10px] font-bold uppercase tracking-widest px-4 py-1 border border-black rounded-full">Evolution</span>
+                            <span class="text-[10px] font-bold uppercase tracking-widest px-4 py-1 border border-black rounded-full">Efficiency</span>
+                        </div>
+                        <p class="text-xs text-gray-400 uppercase tracking-widest">The timeline of autonomous creation</p>
+                    </div>
+                `;
+            }
+            
+            if (statusText.innerHTML !== content) {
+                statusText.style.opacity = 0;
+                setTimeout(() => {
+                    statusText.innerHTML = content;
+                    statusText.style.opacity = 1;
+                    statusText.style.transform = 'translateY(0)';
+                }, 300);
+            }
+        };
+
+        const openDetail = (project) => {
+            document.getElementById('detail-img').src = project.src;
+            document.getElementById('detail-title').innerText = project.title;
+            document.getElementById('detail-cat').innerText = project.category;
+            document.getElementById('detail-desc').innerText = project.description;
+            document.getElementById('detail-long').innerText = project.details;
+            
+            detailModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            // 动画入场
+            setTimeout(() => {
+                document.getElementById('detail-image-container').style.opacity = 1;
+                document.getElementById('detail-image-container').style.transform = 'translateY(0)';
+                document.getElementById('detail-content').style.opacity = 1;
+                document.getElementById('detail-content').style.transform = 'translateX(0)';
+            }, 50);
+        };
+
+        document.getElementById('close-modal').onclick = () => {
+            document.getElementById('detail-image-container').style.opacity = 0;
+            document.getElementById('detail-image-container').style.transform = 'translateY(10px)';
+            document.getElementById('detail-content').style.opacity = 0;
+            document.getElementById('detail-content').style.transform = 'translateX(10px)';
+            
+            setTimeout(() => {
+                detailModal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }, 500);
+        };
+
+        window.addEventListener('scroll', updateLayout);
+        window.addEventListener('load', updateLayout);
+    </script>
+</body>
+</html>
